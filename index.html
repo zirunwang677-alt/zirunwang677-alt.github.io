@@ -2,15 +2,23 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>四人桌游记分板</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#222222">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon.png">
+
     <style>
-        /* 全局设置：禁止缩放和选中 */
         * {
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent; /* 移除点击高亮 */
         }
 
         body, html {
@@ -49,24 +57,20 @@
             height: 100%;
         }
 
-        /* --- 修改部分：分数样式 --- */
         .score {
             font-size: 4rem;
             font-weight: bold;
             margin: 0;
             line-height: 1;
-            cursor: pointer; /* 鼠标变为手型 */
-            text-decoration: underline; /* 下划线 */
-            text-decoration-style: dotted; /* 虚线 */
+            cursor: pointer;
+            text-decoration: underline;
+            text-decoration-style: dotted;
             text-decoration-thickness: 2px;
             text-decoration-color: rgba(0,0,0,0.3);
-            padding: 10px; /* 增加点击热区 */
+            padding: 15px;
         }
         
-        /* 点击分数时的反馈 */
-        .score:active {
-            opacity: 0.5;
-        }
+        .score:active { opacity: 0.5; }
 
         .controls {
             display: flex;
@@ -87,6 +91,7 @@
             justify-content: center;
             align-items: center;
             font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         button:active {
@@ -94,22 +99,19 @@
             transform: scale(0.95);
         }
 
-        /* 上方玩家 (Top) - 红色系 */
+        /* 布局颜色 */
         #p1 { top: 0; left: 0; width: 100%; height: 30%; background-color: #FFCDD2; }
         #p1 .content { transform: rotate(180deg); }
 
-        /* 下方玩家 (Bottom) - 蓝色系 */
         #p2 { bottom: 0; left: 0; width: 100%; height: 30%; background-color: #BBDEFB; }
 
-        /* 左侧玩家 (Left) - 绿色系 */
         #p3 { top: 30%; left: 0; width: 50%; height: 40%; background-color: #C8E6C9; }
         #p3 .content { transform: rotate(90deg); }
 
-        /* 右侧玩家 (Right) - 黄色系 */
         #p4 { top: 30%; right: 0; width: 50%; height: 40%; background-color: #FFF9C4; }
         #p4 .content { transform: rotate(-90deg); }
 
-        /* 中央重置按钮 */
+        /* 中央按钮 */
         #center-zone {
             position: absolute;
             top: 50%;
@@ -120,90 +122,90 @@
             height: 60px;
             background-color: #fff;
             border-radius: 50%;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
         }
         #center-zone svg { width: 24px; height: 24px; fill: #333; }
+        #center-zone:active { transform: translate(-50%, -50%) scale(0.9); background-color: #f0f0f0; }
 
     </style>
 </head>
 <body>
 
 <div id="container">
-    
     <div class="player-zone" id="p1">
         <div class="content">
             <div class="score" id="score-1" onclick="editScore(1)">0</div>
-            <div class="controls">
-                <button onclick="updateScore(1, -1)">-</button>
-                <button onclick="updateScore(1, 1)">+</button>
-            </div>
+            <div class="controls"><button onclick="updateScore(1, -1)">-</button><button onclick="updateScore(1, 1)">+</button></div>
         </div>
     </div>
-
     <div class="player-zone" id="p3">
         <div class="content">
             <div class="score" id="score-3" onclick="editScore(3)">0</div>
-            <div class="controls">
-                <button onclick="updateScore(3, -1)">-</button>
-                <button onclick="updateScore(3, 1)">+</button>
-            </div>
+            <div class="controls"><button onclick="updateScore(3, -1)">-</button><button onclick="updateScore(3, 1)">+</button></div>
         </div>
     </div>
-
     <div class="player-zone" id="p4">
         <div class="content">
             <div class="score" id="score-4" onclick="editScore(4)">0</div>
-            <div class="controls">
-                <button onclick="updateScore(4, -1)">-</button>
-                <button onclick="updateScore(4, 1)">+</button>
-            </div>
+            <div class="controls"><button onclick="updateScore(4, -1)">-</button><button onclick="updateScore(4, 1)">+</button></div>
         </div>
     </div>
-
     <div class="player-zone" id="p2">
         <div class="content">
             <div class="score" id="score-2" onclick="editScore(2)">0</div>
-            <div class="controls">
-                <button onclick="updateScore(2, -1)">-</button>
-                <button onclick="updateScore(2, 1)">+</button>
-            </div>
+            <div class="controls"><button onclick="updateScore(2, -1)">-</button><button onclick="updateScore(2, 1)">+</button></div>
         </div>
     </div>
-
     <div id="center-zone" onclick="resetAll()">
-        <svg viewBox="0 0 24 24">
-            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
     </div>
-
 </div>
 
 <script>
+    // --- PWA 注册代码 ---
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('Service Worker 注册成功', reg))
+                .catch(err => console.log('Service Worker 注册失败', err));
+        });
+    }
+
+    // --- 游戏逻辑 ---
     let scores = { 1: 0, 2: 0, 3: 0, 4: 0 };
+
+    // 尝试从本地存储读取分数 (防止刷新丢失)
+    try {
+        const saved = localStorage.getItem('gameScores');
+        if (saved) scores = JSON.parse(saved);
+    } catch(e) {}
+
+    // 初始化显示
+    for(let i=1; i<=4; i++) document.getElementById(`score-${i}`).innerText = scores[i];
+
+    function saveScores() {
+        localStorage.setItem('gameScores', JSON.stringify(scores));
+    }
 
     function updateScore(player, change) {
         scores[player] += change;
         document.getElementById(`score-${player}`).innerText = scores[player];
+        saveScores();
     }
 
-    // 新增：编辑分数功能
     function editScore(player) {
-        // 弹出输入框，默认值为当前分数
         let currentScore = scores[player];
-        let input = prompt("请输入新的分数：", currentScore);
-        
-        // 验证输入内容
-        // 1. 点击取消返回 null
-        // 2. 输入空格或非数字
+        let input = prompt("请输入分数：", currentScore);
         if (input !== null && input.trim() !== "") {
             let newScore = parseInt(input);
             if (!isNaN(newScore)) {
                 scores[player] = newScore;
                 document.getElementById(`score-${player}`).innerText = scores[player];
+                saveScores();
             } else {
                 alert("请输入有效的数字！");
             }
@@ -211,14 +213,14 @@
     }
 
     function resetAll() {
-        if(confirm("确定要重置所有人的分数吗？")) {
+        if(confirm("重置所有分数？")) {
             for (let i = 1; i <= 4; i++) {
                 scores[i] = 0;
                 document.getElementById(`score-${i}`).innerText = 0;
             }
+            saveScores();
         }
     }
 </script>
-
 </body>
 </html>
