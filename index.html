@@ -54,11 +54,17 @@
             width: 95%;
         }
 
-        /* 分数实线下划线，区分 6 和 9 */
+        .score-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 5px;
+        }
+
         .score {
-            font-size: 3.5rem;
+            font-size: 3.2rem;
             font-weight: bold;
-            margin: 5px 0;
             line-height: 1;
             cursor: pointer;
             border-bottom: 6px solid rgba(0,0,0,0.7); 
@@ -66,19 +72,34 @@
         
         .score:active { opacity: 0.5; }
 
+        /* 圆形自定义按钮：保持通透感 */
+        .btn-custom {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            border: 1px solid rgba(255,255,255,0.3);
+            font-size: 1.2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #111;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
         .controls {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 6px;
-            margin-top: 5px;
         }
 
+        /* 普通按钮：恢复原样透明度 (0.4) */
         button {
             background: rgba(255,255,255,0.4);
             border: none;
             border-radius: 8px;
             width: 44px;
-            height: 44px;
+            height: 42px;
             font-size: 0.85rem;
             color: #111;
             cursor: pointer;
@@ -96,19 +117,18 @@
             transform: scale(0.9);
         }
 
-        /* 布局颜色 */
-        #p1 { top: 0; left: 0; width: 100%; height: 32%; background-color: #FFCDD2; }
+
+        #p1 { top: 0; left: 0; width: 100%; height: 30%; background-color: #FFCDD2; }
         #p1 .content { transform: rotate(180deg); }
 
-        #p2 { bottom: 0; left: 0; width: 100%; height: 32%; background-color: #BBDEFB; }
+        #p2 { bottom: 0; left: 0; width: 100%; height: 30%; background-color: #BBDEFB; }
 
-        #p3 { top: 32%; left: 0; width: 50%; height: 36%; background-color: #C8E6C9; }
+        #p3 { top: 30%; left: 0; width: 50%; height: 40%; background-color: #C8E6C9; }
         #p3 .content { transform: rotate(90deg); }
 
-        #p4 { top: 32%; right: 0; width: 50%; height: 36%; background-color: #FFF9C4; }
+        #p4 { top: 30%; right: 0; width: 50%; height: 40%; background-color: #FFF9C4; }
         #p4 .content { transform: rotate(-90deg); }
 
-        /* 中央按钮：现在用于统一设定分数 */
         #center-zone {
             position: absolute;
             right: 3%;
@@ -124,7 +144,6 @@
             align-items: center;
             cursor: pointer;
         }
-        /* 图标更换为“设置/同步”感更强的样式 */
         #center-zone svg { width: 24px; height: 24px; fill: #333; }
     </style>
 </head>
@@ -143,7 +162,11 @@
             document.write(`
                 <div class="player-zone" id="${p.name}">
                     <div class="content">
-                        <div class="score" id="score-${p.id}" onclick="editScore(${p.id})">0</div>
+                        <div class="score-row">
+                            <button class="btn-custom" onclick="customChange(${p.id}, -1)">-</button>
+                            <div class="score" id="score-${p.id}" onclick="editScore(${p.id})">0</div>
+                            <button class="btn-custom" onclick="customChange(${p.id}, 1)">+</button>
+                        </div>
                         <div class="controls">
                             <button class="minus" onclick="updateScore(${p.id}, -1000)">-1k</button>
                             <button class="minus" onclick="updateScore(${p.id}, -100)">-100</button>
@@ -168,17 +191,14 @@
 </div>
 
 <script>
-    // --- PWA 注册 ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js').catch(err => {});
         });
     }
 
-    // --- 核心逻辑 ---
     let scores = { 1: 0, 2: 0, 3: 0, 4: 0 };
 
-    // 载入历史分数
     try {
         const saved = localStorage.getItem('gameScores');
         if (saved) {
@@ -212,7 +232,19 @@
         }
     }
 
-    // --- 新增：统一设置所有人的分数 ---
+    function customChange(player, type) {
+        let action = type > 0 ? "增加" : "减少";
+        let input = prompt(`请输入要${action}的分数：`);
+        if (input !== null && input.trim() !== "") {
+            let val = Math.abs(parseInt(input));
+            if (!isNaN(val)) {
+                updateScore(player, val * type);
+            } else {
+                alert("请输入有效的数字！");
+            }
+        }
+    }
+
     function setAllScores() {
         let input = prompt("将所有玩家分数统一设置为：", "0");
         if (input !== null && input.trim() !== "") {
